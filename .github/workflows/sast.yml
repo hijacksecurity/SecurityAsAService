@@ -7,7 +7,7 @@ on:
         description: 'Docker image for SAST tool'
         required: false
         type: string
-        default: 'returntocorp/semgrep:latest'
+        default: 'docker.io/hijacksecurity/security/semgrep:latest'
       config:
         description: 'Configuration for the SAST tool'
         required: false
@@ -28,14 +28,13 @@ jobs:
           mkdir -p results
           
           # Determine if we should use --user flag (skip for official returntocorp images)
-          USER_FLAG=""
-          if [[ "${{ inputs.image }}" != *"returntocorp"* ]]; then
-            USER_FLAG="--user $(id -u):$(id -g)"
+          USER_FLAG="--user $(id -u):$(id -g)"
+          if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
+            USER_FLAG=""
           fi
           
           # Run SAST scan with SARIF output
           docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             $USER_FLAG \
@@ -48,39 +47,42 @@ jobs:
             
           # Run SAST scan with JSON output  
           docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              $CONFIG \
+              --config=r/owasp-top-ten \
+              --config=r/cwe-top-25 \
+              --config=r/security-audit \
               --json --output=results/sast-results.json || echo "JSON generation completed with exit code $?"
             
           # Run SAST scan with JUnit XML output
           docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              $CONFIG \
+              --config=r/owasp-top-ten \
+              --config=r/cwe-top-25 \
+              --config=r/security-audit \
               --junit-xml --output=results/sast-results.xml || echo "JUnit XML generation completed with exit code $?"
               
           # Run SAST scan with HTML output
           docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              $CONFIG \
+              --config=r/owasp-top-ten \
+              --config=r/cwe-top-25 \
+              --config=r/security-audit \
               --dataflow-traces \
               --output=results/sast-report.html || echo "HTML report generation completed with exit code $?"
               
-          # Fix permissions if running as root
+          # Fix permissions if running as root (only for returntocorp images)
           if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
             sudo chown -R $(id -u):$(id -g) results/ || true
           fi

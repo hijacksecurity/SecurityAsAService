@@ -7,7 +7,7 @@ on:
         description: 'Docker image for SCA tool'
         required: false
         type: string
-        default: 'returntocorp/semgrep:latest'
+        default: 'docker.io/hijacksecurity/security/semgrep:latest'
 
 jobs:
   SCAScan:
@@ -25,14 +25,13 @@ jobs:
           echo "Running OSS dependency scanning..."
           
           # Determine if we should use --user flag (skip for official returntocorp images)
-          USER_FLAG=""
-          if [[ "${{ inputs.image }}" != *"returntocorp"* ]]; then
-            USER_FLAG="--user $(id -u):$(id -g)"
+          USER_FLAG="--user $(id -u):$(id -g)"
+          if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
+            USER_FLAG=""
           fi
           
           # Run dependency scanning with SARIF output
           docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             $USER_FLAG \
@@ -48,7 +47,6 @@ jobs:
               
           # Run dependency scanning with JSON output
           docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             $USER_FLAG \
@@ -64,7 +62,6 @@ jobs:
           
           # Run dependency scanning with JUnit XML output
           docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             $USER_FLAG \
@@ -80,7 +77,6 @@ jobs:
               
           # Run dependency scanning with HTML output
           docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             $USER_FLAG \
@@ -95,7 +91,7 @@ jobs:
               --dataflow-traces \
               --output=results/sca-report.html || echo "HTML report generation completed with exit code $?"
               
-          # Fix permissions if running as root
+          # Fix permissions if running as root (only for returntocorp images)
           if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
             sudo chown -R $(id -u):$(id -g) results/ || true
           fi
