@@ -7,7 +7,7 @@ on:
         description: 'Docker image for SCA tool'
         required: false
         type: string
-        default: 'docker.io/hijacksecurity/semgrep:latest'
+        default: 'semgrep/semgrep:latest'
 
 jobs:
   SCAScan:
@@ -35,8 +35,11 @@ jobs:
             exit 0
           fi
           
-          # Run with non-root user for security
-          USER_FLAG="--user $(id -u):$(id -g)"
+          # Official semgrep image runs as root, custom images can use non-root
+          USER_FLAG=""
+          if [[ "${{ inputs.image }}" != *"semgrep/semgrep"* ]]; then
+            USER_FLAG="--user $(id -u):$(id -g)"
+          fi
           
           # Run dependency scanning with SARIF output
           docker run --rm \
@@ -79,6 +82,10 @@ jobs:
               --dataflow-traces \
               --output=results/sca-report.html || echo "HTML report generation completed with exit code $?"
               
+          # Fix permissions if running as root (official image)
+          if [[ "${{ inputs.image }}" == *"semgrep/semgrep"* ]]; then
+            sudo chown -R $(id -u):$(id -g) results/ || true
+          fi
         
       - name: Upload to GitHub Security tab
         if: always() && hashFiles('results/sca-results.sarif') != ''

@@ -7,7 +7,7 @@ on:
         description: 'Docker image for SAST tool'
         required: false
         type: string
-        default: 'docker.io/hijacksecurity/semgrep:latest'
+        default: 'semgrep/semgrep:latest'
 
 jobs:
   SASTScan:
@@ -22,8 +22,11 @@ jobs:
           # Create results directory
           mkdir -p results
           
-          # Run with non-root user for security
-          USER_FLAG="--user $(id -u):$(id -g)"
+          # Official semgrep image runs as root, custom images can use non-root
+          USER_FLAG=""
+          if [[ "${{ inputs.image }}" != *"semgrep/semgrep"* ]]; then
+            USER_FLAG="--user $(id -u):$(id -g)"
+          fi
           
           # Run SAST scan with SARIF output
           docker run --rm \
@@ -66,6 +69,10 @@ jobs:
               --dataflow-traces \
               --output=results/sast-report.html || echo "HTML report generation completed with exit code $?"
               
+          # Fix permissions if running as root (official image)
+          if [[ "${{ inputs.image }}" == *"semgrep/semgrep"* ]]; then
+            sudo chown -R $(id -u):$(id -g) results/ || true
+          fi
         
       - name: Upload to GitHub Security tab
         if: always() && hashFiles('results/sast-results.sarif') != ''
