@@ -81,23 +81,11 @@ jobs:
           sarif_file: results/sast-results.sarif
           category: sast
           
-      - name: Publish JUnit Test Results
-        if: always() && hashFiles('results/sast-results.xml') != ''
-        uses: dorny/test-reporter@v1
-        with:
-          name: SAST Security Tests
-          path: results/sast-results.xml
-          reporter: java-junit
-          fail-on-error: false
           
       - name: Upload SAST results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sast-results
-          path: |
-            results/sast-results.sarif
-            results/sast-results.json
-            results/sast-results.xml
-            results/sast-report.html
+          path: results/
           if-no-files-found: warn
