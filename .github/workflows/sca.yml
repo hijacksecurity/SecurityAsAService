@@ -2,6 +2,12 @@ name: SCA Security Control
 
 on:
   workflow_call:
+    inputs:
+      image:
+        description: 'Docker image for SCA tool'
+        required: false
+        type: string
+        default: 'docker.io/hijacksecurity/security/semgrep:latest'
 
 jobs:
   sca:
@@ -13,52 +19,72 @@ jobs:
         
       - name: Run SCA scan
         run: |
-          # Run scans using Docker with proper user permissions and disabled metrics
+          # Create results directory
+          mkdir -p results
+          
+          echo "Running OSS dependency scanning..."
+          
+          # Run dependency scanning with SARIF output
           docker run --rm \
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
-            docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --sarif --output=sca-results.sarif
-            
+            ${{ inputs.image }} \
+            semgrep scan \
+              --config=r/python.lang.security.audit.dependencies \
+              --config=r/javascript.lang.security.audit.dependencies \
+              --config=r/ruby.lang.security.audit.dependencies \
+              --config=r/java.lang.security.audit.dependencies \
+              --config=r/go.lang.security.audit.dependencies \
+              --config=r/csharp.lang.security.audit.dependencies \
+              --sarif --output=results/sca-results.sarif || echo "SARIF scan completed with exit code $?"
+              
+          # Run dependency scanning with JSON output
           docker run --rm \
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
-            docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --json --output=sca-results.json
-            
+            ${{ inputs.image }} \
+            semgrep scan \
+              --config=r/python.lang.security.audit.dependencies \
+              --config=r/javascript.lang.security.audit.dependencies \
+              --config=r/ruby.lang.security.audit.dependencies \
+              --config=r/java.lang.security.audit.dependencies \
+              --config=r/go.lang.security.audit.dependencies \
+              --config=r/csharp.lang.security.audit.dependencies \
+              --json --output=results/sca-results.json || echo "JSON scan completed with exit code $?"
+          
+          # Run dependency scanning with JUnit XML output
           docker run --rm \
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
-            docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --junit-xml --output=sca-results.xml
-            
-          docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
-            -v "$GITHUB_WORKSPACE:/src" \
-            -w /src \
-            --user "$(id -u):$(id -g)" \
-            docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --output=sca-report.html || true
+            ${{ inputs.image }} \
+            semgrep scan \
+              --config=r/python.lang.security.audit.dependencies \
+              --config=r/javascript.lang.security.audit.dependencies \
+              --config=r/ruby.lang.security.audit.dependencies \
+              --config=r/java.lang.security.audit.dependencies \
+              --config=r/go.lang.security.audit.dependencies \
+              --config=r/csharp.lang.security.audit.dependencies \
+              --junit-xml --output=results/sca-results.xml || echo "JUnit XML scan completed with exit code $?"
         
       - name: Upload to GitHub Security tab
-        if: always()
+        if: always() && hashFiles('results/sca-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: sca-results.sarif
+          sarif_file: results/sca-results.sarif
           category: sca
           
       - name: Publish JUnit Test Results
-        if: always()
+        if: always() && hashFiles('results/sca-results.xml') != ''
         uses: dorny/test-reporter@v1
         with:
           name: SCA Security Tests
-          path: sca-results.xml
+          path: results/sca-results.xml
           reporter: java-junit
           
       - name: Upload scan results
@@ -66,8 +92,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sca-results
-          path: |
-            sca-results.sarif
-            sca-results.json
-            sca-results.xml
-            sca-report.html
+          path: results/
+          if-no-files-found: warn

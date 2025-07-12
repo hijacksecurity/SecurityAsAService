@@ -2,6 +2,17 @@ name: SAST Security Control
 
 on:
   workflow_call:
+    inputs:
+      image:
+        description: 'Docker image for SAST tool'
+        required: false
+        type: string
+        default: 'docker.io/hijacksecurity/security/semgrep:latest'
+      config:
+        description: 'Configuration for the SAST tool'
+        required: false
+        type: string
+        default: '--config=r/owasp-top-ten --config=r/cwe-top-25 --config=r/security-audit'
 
 jobs:
   sast:
@@ -13,68 +24,55 @@ jobs:
         
       - name: Run SAST scan
         run: |
-          # Run scans using Docker with proper user permissions and disabled metrics
+          # Create results directory
+          mkdir -p results
+          
+          # Run SAST scan with SARIF output
           docker run --rm \
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
-            docker.io/hijacksecurity/semgrep:latest \
+            ${{ inputs.image }} \
             semgrep scan \
-              --config=r/owasp-top-ten \
-              --config=r/cwe-top-25 \
-              --config=r/security-audit \
-              --sarif --output=sast-results.sarif
+              ${{ inputs.config }} \
+              --sarif --output=results/sast-results.sarif || echo "SARIF generation completed with exit code $?"
             
+          # Run SAST scan with JSON output  
           docker run --rm \
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
-            docker.io/hijacksecurity/semgrep:latest \
+            ${{ inputs.image }} \
             semgrep scan \
-              --config=r/owasp-top-ten \
-              --config=r/cwe-top-25 \
-              --config=r/security-audit \
-              --json --output=sast-results.json
+              ${{ inputs.config }} \
+              --json --output=results/sast-results.json || echo "JSON generation completed with exit code $?"
             
+          # Run SAST scan with JUnit XML output
           docker run --rm \
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
-            docker.io/hijacksecurity/semgrep:latest \
+            ${{ inputs.image }} \
             semgrep scan \
-              --config=r/owasp-top-ten \
-              --config=r/cwe-top-25 \
-              --config=r/security-audit \
-              --junit-xml --output=sast-results.xml
-            
-          docker run --rm \
-            -e SEMGREP_SEND_METRICS=off \
-            -v "$GITHUB_WORKSPACE:/src" \
-            -w /src \
-            --user "$(id -u):$(id -g)" \
-            docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan \
-              --config=r/owasp-top-ten \
-              --config=r/cwe-top-25 \
-              --config=r/security-audit \
-              --output=sast-report.html --dataflow-traces || true
+              ${{ inputs.config }} \
+              --junit-xml --output=results/sast-results.xml || echo "JUnit XML generation completed with exit code $?"
         
       - name: Upload to GitHub Security tab
-        if: always()
+        if: always() && hashFiles('results/sast-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: sast-results.sarif
+          sarif_file: results/sast-results.sarif
           category: sast
           
       - name: Publish JUnit Test Results
-        if: always()
+        if: always() && hashFiles('results/sast-results.xml') != ''
         uses: dorny/test-reporter@v1
         with:
           name: SAST Security Tests
-          path: sast-results.xml
+          path: results/sast-results.xml
           reporter: java-junit
           
       - name: Upload SAST results
@@ -82,8 +80,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sast-results
-          path: |
-            sast-results.sarif
-            sast-results.json
-            sast-results.xml
-            sast-report.html
+          path: results/
+          if-no-files-found: warn

@@ -5,38 +5,44 @@ A collection of containerized security controls for CI/CD pipelines, enabling te
 ## Available Security Controls
 
 ### SAST (Static Application Security Testing)
-- **Semgrep** - Multi-language static analysis for security vulnerabilities
+- **Default**: Semgrep - Multi-language static analysis for security vulnerabilities
+- **Configurable**: Use any SAST tool by specifying a different Docker image
 
 ### SCA (Software Composition Analysis)
-- **Semgrep Supply Chain** - Dependency vulnerability scanning with reachability analysis
-
-### Coming Soon
-- **OWASP ZAP** - Dynamic application security testing (DAST)
-- **Gitleaks** - Secret scanning
-- **Container Scanning** - Image vulnerability scanning
+- **Default**: Semgrep OSS - Dependency vulnerability scanning
+- **Configurable**: Use any SCA tool by specifying a different Docker image
 
 ## Quick Start
 
-### Using in GitHub Actions
-
+### Use Individual Security Controls
 ```yaml
 name: Security Scan
 on: [push, pull_request]
 
 jobs:
   sast:
-    uses: ./.github/workflows/security-controls.yml
-    with:
-      control: semgrep
+    uses: your-org/SecurityAsAService/.github/workflows/sast.yml@main
+    
+  sca:
+    uses: your-org/SecurityAsAService/.github/workflows/sca.yml@main
 ```
 
-### Using Docker Images
+### Use Custom Images
+```yaml
+name: Security Scan
+on: [push, pull_request]
 
-```bash
-# Run Semgrep locally
-docker run --rm -v $(pwd):/src \
-  docker.io/hijacksecurity/security/semgrep:latest \
-  scan --config=auto
+jobs:
+  sast:
+    uses: your-org/SecurityAsAService/.github/workflows/sast.yml@main
+    with:
+      image: 'docker.io/your-org/custom-sast:latest'
+      config: '--config=r/security-audit'
+      
+  sca:
+    uses: your-org/SecurityAsAService/.github/workflows/sca.yml@main
+    with:
+      image: 'docker.io/your-org/custom-sca:latest'
 ```
 
 ## Repository Structure
@@ -44,9 +50,31 @@ docker run --rm -v $(pwd):/src \
 ```
 ├── docs/           # Documentation for each security control
 ├── images/         # Dockerfiles for security tools
-├── templates/      # Reusable CI/CD templates
-└── .github/        # GitHub Actions workflows
+│   └── semgrep/    # Semgrep SAST/SCA container
+└── .github/
+    └── workflows/
+        ├── sast.yml         # Generic SAST control
+        ├── sca.yml          # Generic SCA control
+        └── build-images.yml # Build and publish images
 ```
+
+## Workflow Details
+
+### SAST Control (`sast.yml`)
+- **Purpose**: Static Application Security Testing
+- **Inputs**:
+  - `image`: Docker image for SAST tool (default: semgrep)
+  - `config`: Configuration for the tool
+- **Outputs**: SARIF, JSON, JUnit XML formats
+- **GitHub Integration**: Results appear in Security tab
+
+### SCA Control (`sca.yml`)
+- **Purpose**: Software Composition Analysis
+- **Inputs**:
+  - `image`: Docker image for SCA tool (default: semgrep)
+- **Outputs**: SARIF, JSON, JUnit XML formats
+- **GitHub Integration**: Results appear in Security tab
+
 
 ## Setup
 
@@ -58,63 +86,77 @@ Configure these in Settings → Secrets and variables → Actions → Variables:
 | Variable | Value | Description |
 |----------|-------|-------------|
 | `DOCKER_REGISTRY` | `docker.io` | Docker registry URL |
-| `DOCKER_REPOSITORY` | `hijacksecurity/security` | Your Docker Hub namespace and repository path |
+| `DOCKER_REPOSITORY` | `your-org/security` | Your Docker repository path |
 
 #### Required Repository Secrets
 Configure these in Settings → Secrets and variables → Actions → Secrets:
 
-| Secret | Description | How to Get |
-|--------|-------------|------------|
-| `DOCKERHUB_USERNAME` | Your Docker Hub username | Your Docker Hub account username |
-| `DOCKERHUB_TOKEN` | Docker Hub access token | 1. Log in to Docker Hub<br>2. Go to Account Settings → Security<br>3. Click "New Access Token"<br>4. Give it a descriptive name<br>5. Copy the generated token |
-| `SEMGREP_APP_TOKEN` | Semgrep platform token (for SCA) | 1. Sign up at [semgrep.dev](https://semgrep.dev)<br>2. Go to Settings → Tokens<br>3. Create a new token<br>4. Copy the token value |
+| Secret | Description |
+|--------|-------------|
+| `DOCKERHUB_USERNAME` | Your Docker Hub username |
+| `DOCKERHUB_TOKEN` | Docker Hub access token |
 
 ### Docker Hub Setup
 
 1. Create a Docker Hub account at [hub.docker.com](https://hub.docker.com)
-2. Create a namespace (e.g., `hijacksecurity`)
-3. Create a repository named `security` under your namespace
-4. Generate an access token as described above
+2. Create a repository named `security` under your namespace
+3. Generate an access token in Account Settings → Security
 
 ### Using Different Registries
 
-If you want to use a different registry (e.g., GitHub Container Registry, AWS ECR):
+Update the variables for other registries:
+- GitHub Container Registry: `ghcr.io`
+- AWS ECR: `123456789.dkr.ecr.region.amazonaws.com`
 
-1. Update the `DOCKER_REGISTRY` variable (e.g., `ghcr.io`, `123456789.dkr.ecr.us-east-1.amazonaws.com`)
-2. Update the `DOCKER_REPOSITORY` variable accordingly
-3. Update the login action in `.github/workflows/build-images.yml` to match your registry
+## Adding New Security Tools
 
-#### Example for GitHub Container Registry:
-```yaml
-- name: Log in to GitHub Container Registry
-  uses: docker/login-action@v3
-  with:
-    registry: ghcr.io
-    username: ${{ github.actor }}
-    password: ${{ secrets.GITHUB_TOKEN }}
+### 1. Create a New Docker Image
+```bash
+mkdir images/your-tool
+# Create Dockerfile that follows the same interface as semgrep
 ```
 
-### First Run
+### 2. Update Build Matrix
+Add your tool to `.github/workflows/build-images.yml`:
+```yaml
+matrix:
+  include:
+    - name: semgrep
+      context: ./images/semgrep
+    - name: your-tool
+      context: ./images/your-tool
+```
 
-1. Push your changes to trigger the workflow
-2. Check the Actions tab to monitor the build
-3. Once successful, your images will be available at:
-   - `docker.io/hijacksecurity/security/semgrep:latest`
+### 3. Use in Workflows
+```yaml
+jobs:
+  sast:
+    uses: ./.github/workflows/sast.yml
+    with:
+      image: 'docker.io/your-org/security/your-tool:latest'
+```
 
-### Consuming the Security Controls
+## Tool Interface Requirements
 
-Other projects can now use your security controls by:
+For tools to work with our workflows, they should:
 
-1. Copying the relevant template from `templates/`
-2. Adding the required secrets (e.g., `SEMGREP_APP_TOKEN` for SCA)
-3. Configuring the same repository variables or hardcoding the image path
+1. **Accept standard output format flags**:
+   - `--sarif --output=filename.sarif`
+   - `--json --output=filename.json`
+   - `--junit-xml --output=filename.xml`
+
+2. **Run as non-root user** (UID 1001)
+
+3. **Work with volume mounts** (`/src` working directory)
+
+4. **Exit gracefully** (non-zero exit codes are handled)
 
 ## Contributing
 
 1. Add new security control in `images/` directory
-2. Create corresponding template in `templates/`
-3. Document usage in `docs/`
-4. Update build matrix in `.github/workflows/build-images.yml`
+2. Update build matrix in `.github/workflows/build-images.yml`
+3. Document usage in this README
+4. Test with the workflow templates
 
 ## License
 
