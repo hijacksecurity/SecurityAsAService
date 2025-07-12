@@ -58,6 +58,24 @@ jobs:
         └── build-images.yml # Build and publish images
 ```
 
+## Standardized Reporting
+
+All security controls generate consistent output formats for maximum GitHub integration:
+
+### Report Formats
+| Format | File Name | Purpose | GitHub Integration |
+|--------|-----------|---------|-------------------|
+| **SARIF** | `{control}-results.sarif` | Security findings in standard format | Appears in GitHub Security tab |
+| **JSON** | `{control}-results.json` | Machine-readable results | API integration, custom processing |
+| **JUnit XML** | `{control}-results.xml` | Test results format | Test summaries in Actions |
+| **HTML** | `{control}-report.html` | Human-readable report | Download for offline viewing |
+
+### GitHub Integration Features
+- **Security Tab**: SARIF files automatically populate the Security → Code scanning alerts
+- **Actions Summary**: JUnit XML results show pass/fail status in workflow summaries
+- **Artifacts**: All report formats are uploaded as downloadable artifacts
+- **Pull Request Comments**: Security findings can be commented on PRs (via SARIF)
+
 ## Workflow Details
 
 ### SAST Control (`sast.yml`)
@@ -65,15 +83,29 @@ jobs:
 - **Inputs**:
   - `image`: Docker image for SAST tool (default: semgrep)
   - `config`: Configuration for the tool
-- **Outputs**: SARIF, JSON, JUnit XML formats
-- **GitHub Integration**: Results appear in Security tab
+- **Standardized Outputs**: 
+  - `sast-results.sarif` - SARIF format for GitHub Security tab
+  - `sast-results.json` - JSON format for programmatic processing
+  - `sast-results.xml` - JUnit XML format for test reporting
+  - `sast-report.html` - HTML format for human-readable reports
+- **GitHub Integration**: 
+  - Results appear in Security tab via SARIF upload
+  - Test results appear in Actions summary via JUnit XML
+  - All formats available as downloadable artifacts
 
 ### SCA Control (`sca.yml`)
 - **Purpose**: Software Composition Analysis
 - **Inputs**:
   - `image`: Docker image for SCA tool (default: semgrep)
-- **Outputs**: SARIF, JSON, JUnit XML formats
-- **GitHub Integration**: Results appear in Security tab
+- **Standardized Outputs**:
+  - `sca-results.sarif` - SARIF format for GitHub Security tab
+  - `sca-results.json` - JSON format for programmatic processing
+  - `sca-results.xml` - JUnit XML format for test reporting
+  - `sca-report.html` - HTML format for human-readable reports
+- **GitHub Integration**: 
+  - Results appear in Security tab via SARIF upload
+  - Test results appear in Actions summary via JUnit XML
+  - All formats available as downloadable artifacts
 
 
 ## Setup

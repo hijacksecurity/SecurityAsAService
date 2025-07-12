@@ -66,6 +66,18 @@ jobs:
               ${{ inputs.config }} \
               --junit-xml --output=results/sast-results.xml || echo "JUnit XML generation completed with exit code $?"
               
+          # Run SAST scan with HTML output
+          docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            $USER_FLAG \
+            ${{ inputs.image }} \
+            semgrep scan \
+              ${{ inputs.config }} \
+              --dataflow-traces \
+              --output=results/sast-report.html || echo "HTML report generation completed with exit code $?"
+              
           # Fix permissions if running as root
           if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
             sudo chown -R $(id -u):$(id -g) results/ || true
@@ -91,5 +103,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sast-results
-          path: results/
+          path: |
+            results/sast-results.sarif
+            results/sast-results.json
+            results/sast-results.xml
+            results/sast-report.html
           if-no-files-found: warn
