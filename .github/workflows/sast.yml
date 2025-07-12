@@ -17,12 +17,9 @@ jobs:
       - name: Run SAST scan
         run: |
           semgrep scan \
-            --config=r/python.django.security \
-            --config=r/python.flask.security \
-            --config=r/python.lang.security \
+            --config=auto \
             --sarif \
-            --output=semgrep-results.sarif \
-            --metrics=off
+            --output=semgrep-results.sarif
         
       - name: Upload SARIF results
         if: always()
