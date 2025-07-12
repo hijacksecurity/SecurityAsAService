@@ -7,7 +7,7 @@ on:
         description: 'Docker image for SAST tool'
         required: false
         type: string
-        default: 'docker.io/hijacksecurity/security/semgrep:latest'
+        default: 'docker.io/hijacksecurity/semgrep:latest'
       config:
         description: 'Configuration for the SAST tool'
         required: false

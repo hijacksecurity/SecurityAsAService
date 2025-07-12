@@ -7,7 +7,7 @@ on:
         description: 'Docker image for SCA tool'
         required: false
         type: string
-        default: 'docker.io/hijacksecurity/security/semgrep:latest'
+        default: 'docker.io/hijacksecurity/semgrep:latest'
 
 jobs:
   SCAScan:
