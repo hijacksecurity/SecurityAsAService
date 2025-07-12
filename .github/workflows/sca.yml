@@ -11,26 +11,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Run SCA scan in container
-        uses: docker://docker.io/hijacksecurity/semgrep:latest
-        with:
-          args: scan --config=r/generic.secrets --config=r/secrets --sarif --output=sca-results.sarif
-          
-      - name: Generate additional formats
-        uses: docker://docker.io/hijacksecurity/semgrep:latest
-        with:
-          args: scan --config=r/generic.secrets --config=r/secrets --json --output=sca-results.json
-          
-      - name: Generate JUnit format
-        uses: docker://docker.io/hijacksecurity/semgrep:latest
-        with:
-          args: scan --config=r/generic.secrets --config=r/secrets --junit-xml --output=sca-results.xml
-          
-      - name: Generate HTML report
-        uses: docker://docker.io/hijacksecurity/semgrep:latest
-        with:
-          args: scan --config=r/generic.secrets --config=r/secrets --output=sca-report.html
-        continue-on-error: true
+      - name: Run SCA scan
+        run: |
+          # Run scans using Docker without root or ownership issues
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            docker.io/hijacksecurity/semgrep:latest \
+            semgrep scan --config=r/generic.secrets --config=r/secrets --sarif --output=sca-results.sarif
+            
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            docker.io/hijacksecurity/semgrep:latest \
+            semgrep scan --config=r/generic.secrets --config=r/secrets --json --output=sca-results.json
+            
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            docker.io/hijacksecurity/semgrep:latest \
+            semgrep scan --config=r/generic.secrets --config=r/secrets --junit-xml --output=sca-results.xml
+            
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            docker.io/hijacksecurity/semgrep:latest \
+            semgrep scan --config=r/generic.secrets --config=r/secrets --output=sca-report.html || true
         
       - name: Upload to GitHub Security tab
         if: always()

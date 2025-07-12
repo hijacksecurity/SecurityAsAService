@@ -11,26 +11,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Run SAST scan in container
-        uses: docker://docker.io/hijacksecurity/semgrep:latest
-        with:
-          args: scan --config=auto --sarif --output=sast-results.sarif
-          
-      - name: Generate additional formats
-        uses: docker://docker.io/hijacksecurity/semgrep:latest
-        with:
-          args: scan --config=auto --json --output=sast-results.json
-          
-      - name: Generate JUnit format  
-        uses: docker://docker.io/hijacksecurity/semgrep:latest
-        with:
-          args: scan --config=auto --junit-xml --output=sast-results.xml
-          
-      - name: Generate HTML report
-        uses: docker://docker.io/hijacksecurity/semgrep:latest
-        with:
-          args: scan --config=auto --output=sast-report.html --dataflow-traces
-        continue-on-error: true
+      - name: Run SAST scan
+        run: |
+          # Run scans using Docker without root or ownership issues
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            docker.io/hijacksecurity/semgrep:latest \
+            semgrep scan --config=auto --sarif --output=sast-results.sarif
+            
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            docker.io/hijacksecurity/semgrep:latest \
+            semgrep scan --config=auto --json --output=sast-results.json
+            
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            docker.io/hijacksecurity/semgrep:latest \
+            semgrep scan --config=auto --junit-xml --output=sast-results.xml
+            
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            docker.io/hijacksecurity/semgrep:latest \
+            semgrep scan --config=auto --output=sast-report.html --dataflow-traces || true
         
       - name: Upload to GitHub Security tab
         if: always()
