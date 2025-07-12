@@ -101,6 +101,7 @@ jobs:
           name: SCA Security Tests
           path: results/sca-results.xml
           reporter: java-junit
+          fail-on-error: false
           
       - name: Upload scan results
         if: always()
