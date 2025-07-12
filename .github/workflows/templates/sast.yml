@@ -17,7 +17,7 @@ jobs:
       - name: Run SAST scan
         run: |
           semgrep scan \
-            --config="${SEMGREP_CONFIG:-auto}" \
+            --config="${SEMGREP_CONFIG:-p/security}" \
             --sarif \
             --output=semgrep-results.sarif \
             --metrics=off
