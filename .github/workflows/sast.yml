@@ -14,6 +14,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      - name: Fix Git ownership
+        run: git config --global --add safe.directory /__w/*/
+        
       - name: Run SAST scan
         run: |
           # Generate standardized reports in all formats
