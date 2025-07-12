@@ -24,6 +24,17 @@ jobs:
           
           echo "Running OSS dependency scanning..."
           
+          # Check if there are any files to scan
+          if ! find . -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.java" -o -name "*.go" -o -name "*.cs" -o -name "package.json" -o -name "requirements.txt" -o -name "go.mod" -o -name "*.csproj" | head -1 | grep -q .; then
+            echo "No source code or dependency files found to scan. Creating empty results."
+            mkdir -p results
+            echo '{"results":[]}' > results/sca-results.json
+            echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"semgrep"}},"results":[]}]}' > results/sca-results.sarif
+            echo '<?xml version="1.0" encoding="UTF-8"?><testsuite name="SCA"><testcase name="No files to scan" status="skipped"/></testsuite>' > results/sca-results.xml
+            echo '<html><body><h1>SCA Report</h1><p>No source code or dependency files found to scan.</p></body></html>' > results/sca-report.html
+            exit 0
+          fi
+          
           # Run with non-root user for security
           USER_FLAG="--user $(id -u):$(id -g)"
           
