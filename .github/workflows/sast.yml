@@ -16,14 +16,29 @@ jobs:
         
       - name: Run SAST scan
         run: |
+          # Generate multiple output formats
           semgrep scan \
             --config=auto \
             --sarif \
             --output=semgrep-results.sarif
+          
+          semgrep scan \
+            --config=auto \
+            --json \
+            --output=semgrep-results.json
         
+      - name: Upload to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif
+          category: sast
+          
       - name: Upload SAST results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sast-results
-          path: semgrep-results.sarif
+          path: |
+            semgrep-results.sarif
+            semgrep-results.json
