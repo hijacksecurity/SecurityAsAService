@@ -24,11 +24,8 @@ jobs:
           
           echo "Running OSS dependency scanning..."
           
-          # Determine if we should use --user flag (skip for official returntocorp images)
+          # Run with non-root user for security
           USER_FLAG="--user $(id -u):$(id -g)"
-          if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
-            USER_FLAG=""
-          fi
           
           # Run dependency scanning with SARIF output
           docker run --rm \
@@ -91,10 +88,6 @@ jobs:
               --dataflow-traces \
               --output=results/sca-report.html || echo "HTML report generation completed with exit code $?"
               
-          # Fix permissions if running as root (only for returntocorp images)
-          if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
-            sudo chown -R $(id -u):$(id -g) results/ || true
-          fi
         
       - name: Upload to GitHub Security tab
         if: always() && hashFiles('results/sca-results.sarif') != ''

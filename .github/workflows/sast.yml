@@ -27,11 +27,8 @@ jobs:
           # Create results directory
           mkdir -p results
           
-          # Determine if we should use --user flag (skip for official returntocorp images)
+          # Run with non-root user for security
           USER_FLAG="--user $(id -u):$(id -g)"
-          if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
-            USER_FLAG=""
-          fi
           
           # Run SAST scan with SARIF output
           docker run --rm \
@@ -56,6 +53,7 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
+              ${{ inputs.config }} \
               --json --output=results/sast-results.json || echo "JSON generation completed with exit code $?"
             
           # Run SAST scan with JUnit XML output
@@ -68,6 +66,7 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
+              ${{ inputs.config }} \
               --junit-xml --output=results/sast-results.xml || echo "JUnit XML generation completed with exit code $?"
               
           # Run SAST scan with HTML output
@@ -80,13 +79,10 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
+              ${{ inputs.config }} \
               --dataflow-traces \
               --output=results/sast-report.html || echo "HTML report generation completed with exit code $?"
               
-          # Fix permissions if running as root (only for returntocorp images)
-          if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
-            sudo chown -R $(id -u):$(id -g) results/ || true
-          fi
         
       - name: Upload to GitHub Security tab
         if: always() && hashFiles('results/sast-results.sarif') != ''
