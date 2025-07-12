@@ -1,0 +1,27 @@
+# Semgrep Supply Chain SCA Security Control
+# Reusable workflow for dependency vulnerability scanning
+
+semgrep-sca:
+  runs-on: ubuntu-latest
+  container:
+    image: ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/semgrep:latest
+  
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Semgrep Supply Chain scan
+      run: |
+        semgrep ci \
+          --supply-chain \
+          --json \
+          --output=semgrep-sca-results.json
+      env:
+        SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+      
+    - name: Upload scan results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: semgrep-sca-results
+        path: semgrep-sca-results.json
