@@ -44,6 +44,7 @@ jobs:
               --config=r/java.lang.security.audit.dependencies \
               --config=r/go.lang.security.audit.dependencies \
               --config=r/csharp.lang.security.audit.dependencies \
+              --exclude='*.yaml' --exclude='*.yml' --exclude='Dockerfile*' --exclude='*.tf' --exclude='*.hcl' \
               --sarif --output=results/sca-results.sarif || echo "SARIF scan completed with exit code $?"
               
           # Run dependency scanning with JSON output
@@ -59,6 +60,7 @@ jobs:
               --config=r/java.lang.security.audit.dependencies \
               --config=r/go.lang.security.audit.dependencies \
               --config=r/csharp.lang.security.audit.dependencies \
+              --exclude='*.yaml' --exclude='*.yml' --exclude='Dockerfile*' --exclude='*.tf' --exclude='*.hcl' \
               --json --output=results/sca-results.json || echo "JSON scan completed with exit code $?"
           
           # Run dependency scanning with JUnit XML output
@@ -74,6 +76,7 @@ jobs:
               --config=r/java.lang.security.audit.dependencies \
               --config=r/go.lang.security.audit.dependencies \
               --config=r/csharp.lang.security.audit.dependencies \
+              --exclude='*.yaml' --exclude='*.yml' --exclude='Dockerfile*' --exclude='*.tf' --exclude='*.hcl' \
               --junit-xml --output=results/sca-results.xml || echo "JUnit XML scan completed with exit code $?"
               
           # Run dependency scanning with HTML output
@@ -89,7 +92,7 @@ jobs:
               --config=r/java.lang.security.audit.dependencies \
               --config=r/go.lang.security.audit.dependencies \
               --config=r/csharp.lang.security.audit.dependencies \
-              --dataflow-traces \
+              --exclude='*.yaml' --exclude='*.yml' --exclude='Dockerfile*' --exclude='*.tf' --exclude='*.hcl' \
               --output=results/sca-report.html || echo "HTML report generation completed with exit code $?"
               
           # Fix permissions if running as root (official image)
