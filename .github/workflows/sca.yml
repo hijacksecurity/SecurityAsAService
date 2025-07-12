@@ -19,28 +19,28 @@ jobs:
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --sarif --output=sca-results.sarif
+            semgrep scan --config=r/generic.secrets --config=r/secrets --sarif --output=sca-results.sarif --metrics=off
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --json --output=sca-results.json
+            semgrep scan --config=r/generic.secrets --config=r/secrets --json --output=sca-results.json --metrics=off
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --junit-xml --output=sca-results.xml
+            semgrep scan --config=r/generic.secrets --config=r/secrets --junit-xml --output=sca-results.xml --metrics=off
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --output=sca-report.html || true
+            semgrep scan --config=r/generic.secrets --config=r/secrets --output=sca-report.html --metrics=off || true
         
       - name: Upload to GitHub Security tab
         if: always()

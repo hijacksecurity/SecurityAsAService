@@ -19,28 +19,44 @@ jobs:
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=auto --sarif --output=sast-results.sarif
+            semgrep scan \
+              --config=r/owasp-top-ten \
+              --config=r/cwe-top-25 \
+              --config=r/security-audit \
+              --sarif --output=sast-results.sarif --metrics=off
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=auto --json --output=sast-results.json
+            semgrep scan \
+              --config=r/owasp-top-ten \
+              --config=r/cwe-top-25 \
+              --config=r/security-audit \
+              --json --output=sast-results.json --metrics=off
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=auto --junit-xml --output=sast-results.xml
+            semgrep scan \
+              --config=r/owasp-top-ten \
+              --config=r/cwe-top-25 \
+              --config=r/security-audit \
+              --junit-xml --output=sast-results.xml --metrics=off
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=auto --output=sast-report.html --dataflow-traces || true
+            semgrep scan \
+              --config=r/owasp-top-ten \
+              --config=r/cwe-top-25 \
+              --config=r/security-audit \
+              --output=sast-report.html --dataflow-traces --metrics=off || true
         
       - name: Upload to GitHub Security tab
         if: always()
