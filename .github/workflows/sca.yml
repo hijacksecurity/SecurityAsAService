@@ -16,7 +16,13 @@ jobs:
         
       - name: Run SCA scan
         run: |
-          # Generate JSON report
+          # Generate multiple output formats
+          semgrep scan \
+            --config=r/generic.secrets \
+            --config=r/secrets \
+            --sarif \
+            --output=sca-results.sarif
+            
           semgrep scan \
             --config=r/generic.secrets \
             --config=r/secrets \
@@ -29,11 +35,19 @@ jobs:
             --config=r/secrets \
             --output=sca-report.html || true
         
+      - name: Upload to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: sca-results.sarif
+          category: sca
+          
       - name: Upload scan results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sca-results
           path: |
+            sca-results.sarif
             sca-results.json
             sca-report.html
