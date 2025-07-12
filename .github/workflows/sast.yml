@@ -6,13 +6,21 @@ on:
 jobs:
   sast:
     runs-on: ubuntu-latest
-    container:
-      image: docker.io/hijacksecurity/semgrep:latest
-      options: --user root
+    permissions:
+      security-events: write
+      contents: read
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+        
+      - name: Install Semgrep
+        run: python -m pip install semgrep
         
       - name: Run SAST scan
         run: |
