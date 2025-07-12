@@ -36,11 +36,12 @@ jobs:
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              --config=r/owasp-top-ten \
-              --config=r/cwe-top-25 \
-              --config=r/security-audit \
-              --config=r/secrets \
-              --exclude='*.yaml' --exclude='*.yml' --exclude='Dockerfile*' --exclude='*.tf' --exclude='*.hcl' \
+              --config=auto \
+              --exclude='*.yaml' \
+              --exclude='*.yml' \
+              --exclude='Dockerfile*' \
+              --exclude='*.tf' \
+              --exclude='*.hcl' \
               --sarif --output=results/sast-results.sarif || echo "SARIF generation completed with exit code $?"
             
           # Run SAST scan with JSON output  
@@ -50,11 +51,12 @@ jobs:
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              --config=r/owasp-top-ten \
-              --config=r/cwe-top-25 \
-              --config=r/security-audit \
-              --config=r/secrets \
-              --exclude='*.yaml' --exclude='*.yml' --exclude='Dockerfile*' --exclude='*.tf' --exclude='*.hcl' \
+              --config=auto \
+              --exclude='*.yaml' \
+              --exclude='*.yml' \
+              --exclude='Dockerfile*' \
+              --exclude='*.tf' \
+              --exclude='*.hcl' \
               --json --output=results/sast-results.json || echo "JSON generation completed with exit code $?"
             
           # Run SAST scan with JUnit XML output
@@ -64,11 +66,12 @@ jobs:
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              --config=r/owasp-top-ten \
-              --config=r/cwe-top-25 \
-              --config=r/security-audit \
-              --config=r/secrets \
-              --exclude='*.yaml' --exclude='*.yml' --exclude='Dockerfile*' --exclude='*.tf' --exclude='*.hcl' \
+              --config=auto \
+              --exclude='*.yaml' \
+              --exclude='*.yml' \
+              --exclude='Dockerfile*' \
+              --exclude='*.tf' \
+              --exclude='*.hcl' \
               --junit-xml --output=results/sast-results.xml || echo "JUnit XML generation completed with exit code $?"
               
           # Run SAST scan with HTML output
@@ -78,11 +81,12 @@ jobs:
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              --config=r/owasp-top-ten \
-              --config=r/cwe-top-25 \
-              --config=r/security-audit \
-              --config=r/secrets \
-              --exclude='*.yaml' --exclude='*.yml' --exclude='Dockerfile*' --exclude='*.tf' --exclude='*.hcl' \
+              --config=auto \
+              --exclude='*.yaml' \
+              --exclude='*.yml' \
+              --exclude='Dockerfile*' \
+              --exclude='*.tf' \
+              --exclude='*.hcl' \
               --output=results/sast-report.html || echo "HTML report generation completed with exit code $?"
               
           # Fix permissions if running as root (official image)
