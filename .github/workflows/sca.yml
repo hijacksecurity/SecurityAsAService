@@ -16,15 +16,24 @@ jobs:
         
       - name: Run SCA scan
         run: |
+          # Generate JSON report
           semgrep scan \
             --config=r/generic.secrets \
             --config=r/secrets \
             --json \
             --output=sca-results.json
+            
+          # Generate HTML report for better viewing
+          semgrep scan \
+            --config=r/generic.secrets \
+            --config=r/secrets \
+            --output=sca-report.html || true
         
       - name: Upload scan results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sca-results
-          path: sca-results.json
+          path: |
+            sca-results.json
+            sca-report.html

@@ -26,6 +26,12 @@ jobs:
             --config=auto \
             --json \
             --output=semgrep-results.json
+            
+          # Generate HTML report for better viewing
+          semgrep scan \
+            --config=auto \
+            --output=semgrep-report.html \
+            --dataflow-traces || true
         
       - name: Upload to GitHub Security tab
         if: always()
@@ -42,3 +48,4 @@ jobs:
           path: |
             semgrep-results.sarif
             semgrep-results.json
+            semgrep-report.html
