@@ -8,11 +8,6 @@ on:
         required: false
         type: string
         default: 'docker.io/hijacksecurity/semgrep:latest'
-      config:
-        description: 'Additional configuration for the SAST tool (optional)'
-        required: false
-        type: string
-        default: ''
 
 jobs:
   SASTScan:
@@ -40,7 +35,6 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
-              ${{ inputs.config }} \
               --sarif --output=results/sast-results.sarif || echo "SARIF generation completed with exit code $?"
             
           # Run SAST scan with JSON output  
@@ -53,7 +47,6 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
-              ${{ inputs.config }} \
               --json --output=results/sast-results.json || echo "JSON generation completed with exit code $?"
             
           # Run SAST scan with JUnit XML output
@@ -66,7 +59,6 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
-              ${{ inputs.config }} \
               --junit-xml --output=results/sast-results.xml || echo "JUnit XML generation completed with exit code $?"
               
           # Run SAST scan with HTML output
@@ -79,7 +71,6 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
-              ${{ inputs.config }} \
               --dataflow-traces \
               --output=results/sast-report.html || echo "HTML report generation completed with exit code $?"
               
