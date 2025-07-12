@@ -7,7 +7,7 @@ jobs:
   semgrep-sca:
     runs-on: ubuntu-latest
     container:
-      image: ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/semgrep:latest
+      image: docker.io/hijacksecurity/semgrep:latest
     
     steps:
       - name: Checkout code
