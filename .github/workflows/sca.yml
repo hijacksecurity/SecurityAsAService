@@ -16,7 +16,7 @@ jobs:
         
       - name: Run SCA scan
         run: |
-          # Generate multiple output formats
+          # Generate standardized reports in all formats
           semgrep scan \
             --config=r/generic.secrets \
             --config=r/secrets \
@@ -29,7 +29,12 @@ jobs:
             --json \
             --output=sca-results.json
             
-          # Generate HTML report for better viewing
+          semgrep scan \
+            --config=r/generic.secrets \
+            --config=r/secrets \
+            --junit-xml \
+            --output=sca-results.xml
+            
           semgrep scan \
             --config=r/generic.secrets \
             --config=r/secrets \
@@ -42,6 +47,14 @@ jobs:
           sarif_file: sca-results.sarif
           category: sca
           
+      - name: Publish JUnit Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: SCA Security Tests
+          path: sca-results.xml
+          reporter: java-junit
+          
       - name: Upload scan results
         if: always()
         uses: actions/upload-artifact@v4
@@ -50,4 +63,5 @@ jobs:
           path: |
             sca-results.sarif
             sca-results.json
+            sca-results.xml
             sca-report.html

@@ -16,29 +16,41 @@ jobs:
         
       - name: Run SAST scan
         run: |
-          # Generate multiple output formats
+          # Generate standardized reports in all formats
           semgrep scan \
             --config=auto \
             --sarif \
-            --output=semgrep-results.sarif
+            --output=sast-results.sarif
           
           semgrep scan \
             --config=auto \
             --json \
-            --output=semgrep-results.json
+            --output=sast-results.json
             
-          # Generate HTML report for better viewing
           semgrep scan \
             --config=auto \
-            --output=semgrep-report.html \
+            --junit-xml \
+            --output=sast-results.xml
+            
+          semgrep scan \
+            --config=auto \
+            --output=sast-report.html \
             --dataflow-traces || true
         
       - name: Upload to GitHub Security tab
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: semgrep-results.sarif
+          sarif_file: sast-results.sarif
           category: sast
+          
+      - name: Publish JUnit Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: SAST Security Tests
+          path: sast-results.xml
+          reporter: java-junit
           
       - name: Upload SAST results
         if: always()
@@ -46,6 +58,7 @@ jobs:
         with:
           name: sast-results
           path: |
-            semgrep-results.sarif
-            semgrep-results.json
-            semgrep-report.html
+            sast-results.sarif
+            sast-results.json
+            sast-results.xml
+            sast-report.html
