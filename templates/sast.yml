@@ -1,7 +1,7 @@
-# Semgrep SAST Security Control
-# Reusable workflow for running Semgrep static analysis
+# SAST Security Control
+# Static Application Security Testing
 
-semgrep-sast:
+sast:
   runs-on: ubuntu-latest
   container:
     image: ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/semgrep:latest
@@ -11,7 +11,7 @@ semgrep-sast:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Run Semgrep scan
+    - name: Run SAST scan
       run: |
         semgrep scan \
           --config="${SEMGREP_CONFIG:-auto}" \
@@ -24,4 +24,4 @@ semgrep-sast:
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: semgrep-results.sarif
-        category: semgrep
+        category: sast

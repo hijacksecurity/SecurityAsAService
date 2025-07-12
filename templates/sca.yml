@@ -1,7 +1,7 @@
-# Semgrep Supply Chain SCA Security Control
-# Reusable workflow for dependency vulnerability scanning
+# SCA Security Control
+# Software Composition Analysis
 
-semgrep-sca:
+sca:
   runs-on: ubuntu-latest
   container:
     image: ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_REPOSITORY }}/semgrep:latest
@@ -11,7 +11,7 @@ semgrep-sca:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Run Semgrep Supply Chain scan
+    - name: Run SCA scan
       run: |
         semgrep ci \
           --supply-chain \
@@ -24,5 +24,5 @@ semgrep-sca:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: semgrep-sca-results
+        name: sca-results
         path: semgrep-sca-results.json
