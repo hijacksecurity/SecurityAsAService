@@ -15,7 +15,7 @@ on:
         default: '--config=r/owasp-top-ten --config=r/cwe-top-25 --config=r/security-audit'
 
 jobs:
-  sast:
+  SASTScan:
     runs-on: ubuntu-latest
     
     steps:
@@ -33,6 +33,12 @@ jobs:
             USER_FLAG="--user $(id -u):$(id -g)"
           fi
           
+          # Set default config if not provided
+          CONFIG="${{ inputs.config }}"
+          if [ -z "$CONFIG" ]; then
+            CONFIG="--config=r/owasp-top-ten --config=r/cwe-top-25 --config=r/security-audit"
+          fi
+          
           # Run SAST scan with SARIF output
           docker run --rm \
             -e SEMGREP_SEND_METRICS=off \
@@ -41,7 +47,7 @@ jobs:
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              ${{ inputs.config }} \
+              $CONFIG \
               --sarif --output=results/sast-results.sarif || echo "SARIF generation completed with exit code $?"
             
           # Run SAST scan with JSON output  
@@ -52,7 +58,7 @@ jobs:
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              ${{ inputs.config }} \
+              $CONFIG \
               --json --output=results/sast-results.json || echo "JSON generation completed with exit code $?"
             
           # Run SAST scan with JUnit XML output
@@ -63,7 +69,7 @@ jobs:
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              ${{ inputs.config }} \
+              $CONFIG \
               --junit-xml --output=results/sast-results.xml || echo "JUnit XML generation completed with exit code $?"
               
           # Run SAST scan with HTML output
@@ -74,7 +80,7 @@ jobs:
             $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
-              ${{ inputs.config }} \
+              $CONFIG \
               --dataflow-traces \
               --output=results/sast-report.html || echo "HTML report generation completed with exit code $?"
               

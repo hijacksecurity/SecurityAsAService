@@ -10,7 +10,7 @@ on:
         default: 'returntocorp/semgrep:latest'
 
 jobs:
-  sca:
+  SCAScan:
     runs-on: ubuntu-latest
     
     steps:
