@@ -9,11 +9,12 @@ RUN apt-get update && \
 # Install semgrep
 RUN pip install --no-cache-dir semgrep==1.45.0
 
-# Create non-root user
-RUN useradd -m -u 1000 scanner
+# Create non-root user with GitHub Actions runner UID
+RUN useradd -m -u 1001 scanner
 
-# Set working directory
+# Set working directory and fix permissions
 WORKDIR /src
+RUN chown scanner:scanner /src
 
 # Switch to non-root user
 USER scanner

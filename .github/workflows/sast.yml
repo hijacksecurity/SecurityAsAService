@@ -13,28 +13,32 @@ jobs:
         
       - name: Run SAST scan
         run: |
-          # Run scans using Docker without root or ownership issues
+          # Run scans using Docker with proper user permissions
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
+            --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
             semgrep scan --config=auto --sarif --output=sast-results.sarif
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
+            --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
             semgrep scan --config=auto --json --output=sast-results.json
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
+            --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
             semgrep scan --config=auto --junit-xml --output=sast-results.xml
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
+            --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
             semgrep scan --config=auto --output=sast-report.html --dataflow-traces || true
         

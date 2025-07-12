@@ -13,28 +13,32 @@ jobs:
         
       - name: Run SCA scan
         run: |
-          # Run scans using Docker without root or ownership issues
+          # Run scans using Docker with proper user permissions
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
+            --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
             semgrep scan --config=r/generic.secrets --config=r/secrets --sarif --output=sca-results.sarif
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
+            --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
             semgrep scan --config=r/generic.secrets --config=r/secrets --json --output=sca-results.json
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
+            --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
             semgrep scan --config=r/generic.secrets --config=r/secrets --junit-xml --output=sca-results.xml
             
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
+            --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
             semgrep scan --config=r/generic.secrets --config=r/secrets --output=sca-report.html || true
         
