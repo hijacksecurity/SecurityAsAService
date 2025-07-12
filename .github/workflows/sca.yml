@@ -7,7 +7,7 @@ on:
         description: 'Docker image for SCA tool'
         required: false
         type: string
-        default: 'docker.io/hijacksecurity/security/semgrep:latest'
+        default: 'returntocorp/semgrep:latest'
 
 jobs:
   sca:
@@ -24,12 +24,18 @@ jobs:
           
           echo "Running OSS dependency scanning..."
           
+          # Determine if we should use --user flag (skip for official returntocorp images)
+          USER_FLAG=""
+          if [[ "${{ inputs.image }}" != *"returntocorp"* ]]; then
+            USER_FLAG="--user $(id -u):$(id -g)"
+          fi
+          
           # Run dependency scanning with SARIF output
           docker run --rm \
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
-            --user "$(id -u):$(id -g)" \
+            $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
               --config=r/python.lang.security.audit.dependencies \
@@ -45,7 +51,7 @@ jobs:
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
-            --user "$(id -u):$(id -g)" \
+            $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
               --config=r/python.lang.security.audit.dependencies \
@@ -61,7 +67,7 @@ jobs:
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
-            --user "$(id -u):$(id -g)" \
+            $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
               --config=r/python.lang.security.audit.dependencies \
@@ -71,6 +77,11 @@ jobs:
               --config=r/go.lang.security.audit.dependencies \
               --config=r/csharp.lang.security.audit.dependencies \
               --junit-xml --output=results/sca-results.xml || echo "JUnit XML scan completed with exit code $?"
+              
+          # Fix permissions if running as root
+          if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
+            sudo chown -R $(id -u):$(id -g) results/ || true
+          fi
         
       - name: Upload to GitHub Security tab
         if: always() && hashFiles('results/sca-results.sarif') != ''

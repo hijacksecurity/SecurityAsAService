@@ -5,11 +5,11 @@ A collection of containerized security controls for CI/CD pipelines, enabling te
 ## Available Security Controls
 
 ### SAST (Static Application Security Testing)
-- **Default**: Semgrep - Multi-language static analysis for security vulnerabilities
+- **Default**: Official Semgrep image (`returntocorp/semgrep:latest`) - Multi-language static analysis for security vulnerabilities
 - **Configurable**: Use any SAST tool by specifying a different Docker image
 
 ### SCA (Software Composition Analysis)
-- **Default**: Semgrep OSS - Dependency vulnerability scanning
+- **Default**: Official Semgrep image (`returntocorp/semgrep:latest`) - Dependency vulnerability scanning
 - **Configurable**: Use any SCA tool by specifying a different Docker image
 
 ## Quick Start

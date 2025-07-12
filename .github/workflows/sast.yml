@@ -7,7 +7,7 @@ on:
         description: 'Docker image for SAST tool'
         required: false
         type: string
-        default: 'docker.io/hijacksecurity/security/semgrep:latest'
+        default: 'returntocorp/semgrep:latest'
       config:
         description: 'Configuration for the SAST tool'
         required: false
@@ -27,12 +27,18 @@ jobs:
           # Create results directory
           mkdir -p results
           
+          # Determine if we should use --user flag (skip for official returntocorp images)
+          USER_FLAG=""
+          if [[ "${{ inputs.image }}" != *"returntocorp"* ]]; then
+            USER_FLAG="--user $(id -u):$(id -g)"
+          fi
+          
           # Run SAST scan with SARIF output
           docker run --rm \
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
-            --user "$(id -u):$(id -g)" \
+            $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
               ${{ inputs.config }} \
@@ -43,7 +49,7 @@ jobs:
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
-            --user "$(id -u):$(id -g)" \
+            $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
               ${{ inputs.config }} \
@@ -54,11 +60,16 @@ jobs:
             -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
-            --user "$(id -u):$(id -g)" \
+            $USER_FLAG \
             ${{ inputs.image }} \
             semgrep scan \
               ${{ inputs.config }} \
               --junit-xml --output=results/sast-results.xml || echo "JUnit XML generation completed with exit code $?"
+              
+          # Fix permissions if running as root
+          if [[ "${{ inputs.image }}" == *"returntocorp"* ]]; then
+            sudo chown -R $(id -u):$(id -g) results/ || true
+          fi
         
       - name: Upload to GitHub Security tab
         if: always() && hashFiles('results/sast-results.sarif') != ''
