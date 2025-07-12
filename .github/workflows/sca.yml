@@ -13,34 +13,38 @@ jobs:
         
       - name: Run SCA scan
         run: |
-          # Run scans using Docker with proper user permissions
+          # Run scans using Docker with proper user permissions and disabled metrics
           docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --sarif --output=sca-results.sarif --metrics=off
+            semgrep scan --config=r/generic.secrets --config=r/secrets --sarif --output=sca-results.sarif
             
           docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --json --output=sca-results.json --metrics=off
+            semgrep scan --config=r/generic.secrets --config=r/secrets --json --output=sca-results.json
             
           docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --junit-xml --output=sca-results.xml --metrics=off
+            semgrep scan --config=r/generic.secrets --config=r/secrets --junit-xml --output=sca-results.xml
             
           docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
             docker.io/hijacksecurity/semgrep:latest \
-            semgrep scan --config=r/generic.secrets --config=r/secrets --output=sca-report.html --metrics=off || true
+            semgrep scan --config=r/generic.secrets --config=r/secrets --output=sca-report.html || true
         
       - name: Upload to GitHub Security tab
         if: always()

@@ -13,8 +13,9 @@ jobs:
         
       - name: Run SAST scan
         run: |
-          # Run scans using Docker with proper user permissions
+          # Run scans using Docker with proper user permissions and disabled metrics
           docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
@@ -23,9 +24,10 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
-              --sarif --output=sast-results.sarif --metrics=off
+              --sarif --output=sast-results.sarif
             
           docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
@@ -34,9 +36,10 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
-              --json --output=sast-results.json --metrics=off
+              --json --output=sast-results.json
             
           docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
@@ -45,9 +48,10 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
-              --junit-xml --output=sast-results.xml --metrics=off
+              --junit-xml --output=sast-results.xml
             
           docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             --user "$(id -u):$(id -g)" \
@@ -56,7 +60,7 @@ jobs:
               --config=r/owasp-top-ten \
               --config=r/cwe-top-25 \
               --config=r/security-audit \
-              --output=sast-report.html --dataflow-traces --metrics=off || true
+              --output=sast-report.html --dataflow-traces || true
         
       - name: Upload to GitHub Security tab
         if: always()
