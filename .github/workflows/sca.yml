@@ -76,21 +76,6 @@ jobs:
               --exclude='*.hcl' \
               --junit-xml --output=results/sca-results.xml || echo "JUnit XML scan completed with exit code $?"
               
-          # Run dependency scanning with HTML output
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE:/src" \
-            -w /src \
-            $USER_FLAG \
-            ${{ inputs.image }} \
-            semgrep scan \
-              --config=auto \
-              --exclude='*.yaml' \
-              --exclude='*.yml' \
-              --exclude='Dockerfile*' \
-              --exclude='*.tf' \
-              --exclude='*.hcl' \
-              --output=results/sca-report.html || echo "HTML report generation completed with exit code $?"
-              
           # Fix permissions if running as root (official image)
           if [[ "${{ inputs.image }}" == *"semgrep/semgrep"* ]]; then
             sudo chown -R $(id -u):$(id -g) results/ || true
