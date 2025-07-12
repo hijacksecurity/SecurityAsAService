@@ -11,6 +11,7 @@ on:
 
 jobs:
   SASTScan:
+    name: SAST Scan
     runs-on: ubuntu-latest
     
     steps:
