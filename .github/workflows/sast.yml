@@ -19,8 +19,7 @@ jobs:
           semgrep scan \
             --config="${SEMGREP_CONFIG:-p/security}" \
             --sarif \
-            --output=semgrep-results.sarif \
-            --metrics=off
+            --output=semgrep-results.sarif
         
       - name: Upload SARIF results
         if: always()
