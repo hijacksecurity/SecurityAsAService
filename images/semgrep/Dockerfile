@@ -20,5 +20,4 @@ RUN chown scanner:scanner /src
 USER scanner
 
 # Default command
-ENTRYPOINT ["semgrep"]
-CMD ["--help"]
+CMD []
